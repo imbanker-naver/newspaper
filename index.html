@@ -3,87 +3,62 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>인터넷신문 사고 팔기</title>
+  <title>로그인</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main class="container">
-    <h1>인터넷신문 사고 팔기</h1>
-    <p class="subtitle">매각 희망 / 인수 희망 정보를 접수하고 중개 담당자에게 제공합니다.</p>
-    <div class="page-links">
-      <button id="logoutButton" class="secondary-button" type="button">로그아웃</button>
+  <main class="container auth-container">
+    <div class="page-header-nav">
+      <div>
+        <h1>로그인</h1>
+        <p class="subtitle">로그인 후 계정 권한에 맞는 화면으로 이동합니다.</p>
+      </div>
     </div>
 
-    <div class="toggle-buttons" role="tablist">
-      <button id="sellTab" class="tab-button active" type="button" data-mode="sell" aria-selected="true">매각 희망</button>
-      <button id="buyTab" class="tab-button" type="button" data-mode="buy" aria-selected="false">인수 희망</button>
-    </div>
-
-    <form id="dealForm" class="deal-form">
-      <div class="form-group">
-        <label>네이버 검색제휴 여부</label>
-        <div class="radio-row">
-          <label><input type="radio" name="searchAffiliation" value="예" checked /> 예</label>
-          <label><input type="radio" name="searchAffiliation" value="아니오" /> 아니오</label>
+    <section class="signup-section">
+      <form id="loginForm" class="auth-form">
+        <div class="form-group">
+          <label>이메일</label>
+          <input type="email" name="email" placeholder="example@domain.com" required />
         </div>
-      </div>
-
-      <div class="form-group">
-        <label>매체 유형 (복수 선택 가능)</label>
-        <div class="checkbox-grid">
-          <label><input type="checkbox" name="mediaType" value="일간지" /> 일간지</label>
-          <label><input type="checkbox" name="mediaType" value="방송/통신" /> 방송/통신</label>
-          <label><input type="checkbox" name="mediaType" value="경제/IT" /> 경제/IT</label>
-          <label><input type="checkbox" name="mediaType" value="인터넷신문" /> 인터넷신문</label>
-          <label><input type="checkbox" name="mediaType" value="스포츠/연예" /> 스포츠/연예</label>
-          <label><input type="checkbox" name="mediaType" value="지역지" /> 지역지</label>
-          <label><input type="checkbox" name="mediaType" value="매거진" /> 매거진</label>
-          <label><input type="checkbox" name="mediaType" value="전문지/기타" /> 전문지/기타</label>
+        <div class="form-group">
+          <label>비밀번호</label>
+          <input type="password" name="password" placeholder="비밀번호" required />
         </div>
-      </div>
+        <div class="form-actions">
+          <button type="submit">로그인</button>
+        </div>
+        <p id="loginStatus" class="form-status" aria-live="polite"></p>
+      </form>
+    </section>
 
-      <div class="form-group">
-        <label>2025년도 매출</label>
-        <select name="revenueRange" required>
-          <option value="">선택하세요</option>
-          <option value="3억원 이하">3억원 이하</option>
-          <option value="3억~5억원대">3억~5억원대</option>
-          <option value="5억~9억원대">5억~9억원대</option>
-          <option value="10~14억원대">10~14억원대</option>
-          <option value="15억원 이상">15억원 이상</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label id="priceLabel">매각 희망가 [억원]</label>
-        <input type="text" name="price" placeholder="숫자만 입력" required />
-      </div>
-
-      <div class="form-group">
-        <label>하고 싶은 말</label>
-        <textarea name="notes" rows="4" placeholder="추가 내용을 입력하세요"></textarea>
-      </div>
-
-      <div class="form-group">
-        <label>이메일</label>
-        <input type="email" name="email" placeholder="example@domain.com" required />
-      </div>
-
-      <div class="form-actions">
-        <button type="submit">접수하기</button>
-      </div>
-    </form>
-
-    <section id="resultSection" class="result-section hidden" aria-live="polite">
-      <h2>접수 정보</h2>
-      <p id="resultStatus" class="result-status"></p>
-      <pre id="resultText" class="result-text"></pre>
-      <div class="result-actions">
-        <button id="copyButton">요약 복사</button>
-      </div>
+    <section class="signup-section" aria-labelledby="signupTitle">
+      <h2 id="signupTitle">간단 회원가입</h2>
+      <form id="signupForm" class="auth-form">
+        <div class="form-group">
+          <label>이름</label>
+          <input type="text" name="name" placeholder="홍길동" required />
+        </div>
+        <div class="form-group">
+          <label>이메일</label>
+          <input type="email" name="email" placeholder="example@domain.com" required />
+        </div>
+        <div class="form-group">
+          <label>비밀번호</label>
+          <input type="password" name="password" placeholder="6자 이상" minlength="6" required />
+        </div>
+        <div class="form-actions">
+          <button type="submit">회원가입</button>
+        </div>
+        <p id="signupStatus" class="form-status" aria-live="polite"></p>
+      </form>
     </section>
   </main>
 
-  <script src="app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="login.js"></script>
 </body>
 </html>

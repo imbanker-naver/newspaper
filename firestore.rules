@@ -1,0 +1,41 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn() && request.auth.token.email == 'imbanker@naver.com';
+    }
+
+    match /users/{userId} {
+      allow create: if signedIn()
+        && request.auth.uid == userId
+        && request.resource.data.email == request.auth.token.email
+        && (
+          request.resource.data.role == 'user'
+          || (isAdmin() && request.resource.data.role == 'admin')
+        );
+
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == userId);
+
+      allow update: if signedIn()
+        && request.auth.uid == userId
+        && resource.data.role == request.resource.data.role
+        && resource.data.email == request.resource.data.email;
+
+      allow delete: if false;
+    }
+
+    match /submissions/{submissionId} {
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.email == request.auth.token.email;
+
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+  }
+}

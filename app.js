@@ -1,8 +1,6 @@
 const sellTab = document.getElementById("sellTab");
 const buyTab = document.getElementById("buyTab");
 const priceLabel = document.getElementById("priceLabel");
-const signupForm = document.getElementById("signupForm");
-const signupStatus = document.getElementById("signupStatus");
 const logoutButton = document.getElementById("logoutButton");
 const dealForm = document.getElementById("dealForm");
 const resultSection = document.getElementById("resultSection");
@@ -11,6 +9,7 @@ const resultText = document.getElementById("resultText");
 const copyButton = document.getElementById("copyButton");
 
 let currentMode = "sell";
+let currentUser = null;
 
 function setMode(mode) {
   currentMode = mode;
@@ -37,69 +36,23 @@ function buildSummary(values) {
     `이메일: ${values.email}`].join("\n");
 }
 
-async function readApiResponse(response) {
-  const text = await response.text();
-
-  if (!text) {
-    return {
-      error: "서버 응답이 비어 있습니다. 서버가 실행 중인지 확인해 주세요.",
-    };
-  }
-
-  try {
-    return JSON.parse(text);
-  } catch (error) {
-    return {
-      error: "서버에서 올바른 JSON 응답을 받지 못했습니다. npm start로 백엔드 서버를 실행한 뒤 다시 시도해 주세요.",
-    };
-  }
-}
-
 sellTab.addEventListener("click", () => setMode("sell"));
 buyTab.addEventListener("click", () => setMode("buy"));
 
-if (signupForm) {
-  signupForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
+auth.onAuthStateChanged((user) => {
+  if (!user) {
+    window.location.href = 'index.html';
+    return;
+  }
 
-    const name = signupForm.elements["name"].value.trim();
-    const email = signupForm.elements["email"].value.trim();
-    const password = signupForm.elements["password"].value;
-
-    if (!name || !email || !password) {
-      signupStatus.textContent = "이름, 이메일, 비밀번호를 모두 입력해 주세요.";
-      signupStatus.className = "form-status error";
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, password }),
-      });
-
-      const data = await readApiResponse(response);
-
-      if (!response.ok) {
-        throw new Error(data.error || '회원가입 중 오류가 발생했습니다.');
-      }
-
-      signupStatus.textContent = data.message;
-      signupStatus.className = "form-status success";
-      signupForm.reset();
-    } catch (error) {
-      signupStatus.textContent = error.message;
-      signupStatus.className = "form-status error";
-    }
-  });
-}
+  currentUser = user;
+  dealForm.elements["email"].value = user.email || "";
+  dealForm.elements["email"].readOnly = true;
+});
 
 logoutButton.addEventListener("click", async () => {
-  await fetch('/api/logout', { method: 'POST' });
-  window.location.href = '/login.html';
+  await auth.signOut();
+  window.location.href = 'index.html';
 });
 
 dealForm.addEventListener("submit", async (event) => {
@@ -134,27 +87,21 @@ dealForm.addEventListener("submit", async (event) => {
   };
 
   try {
-    const response = await fetch('/api/submit', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(values),
-    });
-
-    const data = await readApiResponse(response);
-
-    if (response.status === 401) {
-      window.location.href = '/login.html';
+    if (!currentUser) {
+      window.location.href = 'index.html';
       return;
     }
 
-    if (!response.ok) {
-      throw new Error(data.error || '서버에 요청하는 중 오류가 발생했습니다.');
-    }
+    const summary = buildSummary(values);
 
-    resultText.textContent = data.summary;
-    resultStatus.textContent = data.message;
+    await db.collection('submissions').add({
+      created_at: new Date().toISOString(),
+      userId: currentUser.uid,
+      ...values,
+    });
+
+    resultText.textContent = summary;
+    resultStatus.textContent = "접수가 완료되었습니다.";
     resultSection.classList.remove("hidden");
     resultSection.scrollIntoView({ behavior: "smooth" });
   } catch (error) {

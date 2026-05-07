@@ -1,20 +1,21 @@
 {
   "hosting": {
-    "public": "public",
+    "public": ".",
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "run": {
-          "serviceId": "newspaper",
-          "region": "asia-northeast3",
-          "pinTag": true
-        }
-      }
+      "**/node_modules/**",
+      "server.js",
+      "db.js",
+      "mailer.js",
+      "database.json",
+      "package*.json",
+      "Dockerfile",
+      "FIREBASE_DEPLOYMENT.md",
+      "*.docx"
     ]
+  },
+  "firestore": {
+    "rules": "firestore.rules"
   }
 }

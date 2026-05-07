@@ -3,19 +3,30 @@ const loginStatus = document.getElementById('loginStatus');
 const signupForm = document.getElementById('signupForm');
 const signupStatus = document.getElementById('signupStatus');
 
-async function readApiResponse(response) {
-  const text = await response.text();
+function setStatus(element, message, type) {
+  element.textContent = message;
+  element.className = `form-status ${type}`;
+}
 
-  if (!text) {
-    return { error: '서버 응답이 비어 있습니다. 서버가 실행 중인지 확인해 주세요.' };
-  }
+async function getUserRole(uid) {
+  const userDoc = await db.collection('users').doc(uid).get();
+  return userDoc.exists ? userDoc.data().role || 'user' : 'user';
+}
+
+function redirectByRole(role) {
+  window.location.href = role === 'admin' ? 'admin.html' : 'deal.html';
+}
+
+auth.onAuthStateChanged(async (user) => {
+  if (!user) return;
 
   try {
-    return JSON.parse(text);
-  } catch {
-    return { error: '서버에서 올바른 응답을 받지 못했습니다.' };
+    const role = await getUserRole(user.uid);
+    redirectByRole(role);
+  } catch (error) {
+    setStatus(loginStatus, '사용자 정보를 확인하지 못했습니다.', 'error');
   }
-}
+});
 
 loginForm.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -24,26 +35,12 @@ loginForm.addEventListener('submit', async (event) => {
   const password = loginForm.elements.password.value;
 
   try {
-    const response = await fetch('/api/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = await readApiResponse(response);
-
-    if (!response.ok) {
-      throw new Error(data.error || '로그인 중 오류가 발생했습니다.');
-    }
-
-    loginStatus.textContent = data.message;
-    loginStatus.className = 'form-status success';
-    window.location.href = data.redirectTo || '/index.html';
+    const credential = await auth.signInWithEmailAndPassword(email, password);
+    const role = await getUserRole(credential.user.uid);
+    setStatus(loginStatus, '로그인이 완료되었습니다.', 'success');
+    redirectByRole(role);
   } catch (error) {
-    loginStatus.textContent = error.message;
-    loginStatus.className = 'form-status error';
+    setStatus(loginStatus, '이메일 또는 비밀번호가 올바르지 않습니다.', 'error');
   }
 });
 
@@ -54,27 +51,25 @@ signupForm.addEventListener('submit', async (event) => {
   const email = signupForm.elements.email.value.trim();
   const password = signupForm.elements.password.value;
 
+  if (!name || !email || !password) {
+    setStatus(signupStatus, '이름, 이메일, 비밀번호를 모두 입력해 주세요.', 'error');
+    return;
+  }
+
   try {
-    const response = await fetch('/api/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ name, email, password }),
+    const credential = await auth.createUserWithEmailAndPassword(email, password);
+    const role = email.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'admin' : 'user';
+
+    await db.collection('users').doc(credential.user.uid).set({
+      created_at: new Date().toISOString(),
+      name,
+      email,
+      role,
     });
 
-    const data = await readApiResponse(response);
-
-    if (!response.ok) {
-      throw new Error(data.error || '회원가입 중 오류가 발생했습니다.');
-    }
-
-    signupStatus.textContent = `${data.message} 가입한 이메일로 로그인해 주세요.`;
-    signupStatus.className = 'form-status success';
-    loginForm.elements.email.value = email;
-    signupForm.reset();
+    setStatus(signupStatus, '회원가입이 완료되었습니다.', 'success');
+    redirectByRole(role);
   } catch (error) {
-    signupStatus.textContent = error.message;
-    signupStatus.className = 'form-status error';
+    setStatus(signupStatus, error.code === 'auth/email-already-in-use' ? '이미 가입된 이메일입니다.' : '회원가입 중 오류가 발생했습니다.', 'error');
   }
 });
