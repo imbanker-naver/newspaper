@@ -1,5 +1,7 @@
 const loginForm = document.getElementById('loginForm');
 const loginStatus = document.getElementById('loginStatus');
+const signupForm = document.getElementById('signupForm');
+const signupStatus = document.getElementById('signupStatus');
 
 async function readApiResponse(response) {
   const text = await response.text();
@@ -38,9 +40,41 @@ loginForm.addEventListener('submit', async (event) => {
 
     loginStatus.textContent = data.message;
     loginStatus.className = 'form-status success';
-    window.location.href = '/admin.html';
+    window.location.href = data.redirectTo || '/index.html';
   } catch (error) {
     loginStatus.textContent = error.message;
     loginStatus.className = 'form-status error';
+  }
+});
+
+signupForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  const name = signupForm.elements.name.value.trim();
+  const email = signupForm.elements.email.value.trim();
+  const password = signupForm.elements.password.value;
+
+  try {
+    const response = await fetch('/api/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name, email, password }),
+    });
+
+    const data = await readApiResponse(response);
+
+    if (!response.ok) {
+      throw new Error(data.error || '회원가입 중 오류가 발생했습니다.');
+    }
+
+    signupStatus.textContent = `${data.message} 가입한 이메일로 로그인해 주세요.`;
+    signupStatus.className = 'form-status success';
+    loginForm.elements.email.value = email;
+    signupForm.reset();
+  } catch (error) {
+    signupStatus.textContent = error.message;
+    signupStatus.className = 'form-status error';
   }
 });

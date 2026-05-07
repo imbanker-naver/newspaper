@@ -3,6 +3,7 @@ const buyTab = document.getElementById("buyTab");
 const priceLabel = document.getElementById("priceLabel");
 const signupForm = document.getElementById("signupForm");
 const signupStatus = document.getElementById("signupStatus");
+const logoutButton = document.getElementById("logoutButton");
 const dealForm = document.getElementById("dealForm");
 const resultSection = document.getElementById("resultSection");
 const resultStatus = document.getElementById("resultStatus");
@@ -64,41 +65,48 @@ async function readApiResponse(response) {
 sellTab.addEventListener("click", () => setMode("sell"));
 buyTab.addEventListener("click", () => setMode("buy"));
 
-signupForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
+if (signupForm) {
+  signupForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
 
-  const name = signupForm.elements["name"].value.trim();
-  const email = signupForm.elements["email"].value.trim();
-  const password = signupForm.elements["password"].value;
+    const name = signupForm.elements["name"].value.trim();
+    const email = signupForm.elements["email"].value.trim();
+    const password = signupForm.elements["password"].value;
 
-  if (!name || !email || !password) {
-    signupStatus.textContent = "이름, 이메일, 비밀번호를 모두 입력해 주세요.";
-    signupStatus.className = "form-status error";
-    return;
-  }
-
-  try {
-    const response = await fetch('/api/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ name, email, password }),
-    });
-
-    const data = await readApiResponse(response);
-
-    if (!response.ok) {
-      throw new Error(data.error || '회원가입 중 오류가 발생했습니다.');
+    if (!name || !email || !password) {
+      signupStatus.textContent = "이름, 이메일, 비밀번호를 모두 입력해 주세요.";
+      signupStatus.className = "form-status error";
+      return;
     }
 
-    signupStatus.textContent = data.message;
-    signupStatus.className = "form-status success";
-    signupForm.reset();
-  } catch (error) {
-    signupStatus.textContent = error.message;
-    signupStatus.className = "form-status error";
-  }
+    try {
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await readApiResponse(response);
+
+      if (!response.ok) {
+        throw new Error(data.error || '회원가입 중 오류가 발생했습니다.');
+      }
+
+      signupStatus.textContent = data.message;
+      signupStatus.className = "form-status success";
+      signupForm.reset();
+    } catch (error) {
+      signupStatus.textContent = error.message;
+      signupStatus.className = "form-status error";
+    }
+  });
+}
+
+logoutButton.addEventListener("click", async () => {
+  await fetch('/api/logout', { method: 'POST' });
+  window.location.href = '/login.html';
 });
 
 dealForm.addEventListener("submit", async (event) => {
@@ -142,6 +150,11 @@ dealForm.addEventListener("submit", async (event) => {
     });
 
     const data = await readApiResponse(response);
+
+    if (response.status === 401) {
+      window.location.href = '/login.html';
+      return;
+    }
 
     if (!response.ok) {
       throw new Error(data.error || '서버에 요청하는 중 오류가 발생했습니다.');

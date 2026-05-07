@@ -11,7 +11,13 @@ const sessions = new Map();
 app.use(express.json());
 
 app.get('/', (req, res) => {
-  res.redirect('/login.html');
+  const user = getSessionUser(req);
+
+  if (!user) {
+    return res.redirect('/login.html');
+  }
+
+  res.redirect(user.role === 'admin' ? '/admin.html' : '/index.html');
 });
 
 function createPasswordHash(password) {
@@ -52,7 +58,7 @@ function sanitizeUser(user) {
 
 function getSessionUser(req) {
   const cookies = parseCookies(req.headers.cookie);
-  const sessionId = cookies.admin_session;
+  const sessionId = cookies.session_id || cookies.admin_session;
   if (!sessionId) return null;
 
   const session = sessions.get(sessionId);
@@ -64,6 +70,21 @@ function getSessionUser(req) {
   return session.user;
 }
 
+function requireLogin(req, res, next) {
+  const user = getSessionUser(req);
+
+  if (!user) {
+    if (req.path.endsWith('.html')) {
+      return res.redirect('/login.html');
+    }
+
+    return res.status(401).json({ error: '로그인이 필요합니다.' });
+  }
+
+  req.user = user;
+  next();
+}
+
 function requireAdmin(req, res, next) {
   const user = getSessionUser(req);
 
@@ -72,7 +93,7 @@ function requireAdmin(req, res, next) {
       return res.redirect('/login.html');
     }
 
-    return res.status(401).json({ error: '관리자 로그인이 필요합니다.' });
+    return res.status(401).json({ error: '관리자 권한이 필요합니다.' });
   }
 
   req.user = user;
@@ -142,10 +163,6 @@ app.post('/api/login', (req, res) => {
       return res.status(401).json({ error: '이메일 또는 비밀번호가 올바르지 않습니다.' });
     }
 
-    if ((user.role || 'user') !== 'admin') {
-      return res.status(403).json({ error: '관리자 계정만 접속할 수 있습니다.' });
-    }
-
     const sessionId = crypto.randomBytes(32).toString('hex');
     const sessionUser = sanitizeUser(user);
     sessions.set(sessionId, {
@@ -153,18 +170,29 @@ app.post('/api/login', (req, res) => {
       expiresAt: Date.now() + 1000 * 60 * 60 * 8,
     });
 
-    res.setHeader('Set-Cookie', `admin_session=${sessionId}; HttpOnly; Path=/; Max-Age=28800; SameSite=Lax`);
-    res.json({ message: '관리자 로그인이 완료되었습니다.', user: sessionUser });
+    res.setHeader('Set-Cookie', `session_id=${sessionId}; HttpOnly; Path=/; Max-Age=28800; SameSite=Lax`);
+    res.json({
+      message: '로그인이 완료되었습니다.',
+      redirectTo: sessionUser.role === 'admin' ? '/admin.html' : '/index.html',
+      user: sessionUser,
+    });
   });
 });
 
 app.post('/api/logout', (req, res) => {
   const cookies = parseCookies(req.headers.cookie);
+  if (cookies.session_id) {
+    sessions.delete(cookies.session_id);
+  }
+
   if (cookies.admin_session) {
     sessions.delete(cookies.admin_session);
   }
 
-  res.setHeader('Set-Cookie', 'admin_session=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax');
+  res.setHeader('Set-Cookie', [
+    'session_id=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax',
+    'admin_session=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax',
+  ]);
   res.json({ message: '로그아웃되었습니다.' });
 });
 
@@ -173,7 +201,7 @@ app.get('/api/me', (req, res) => {
   res.json({ user });
 });
 
-app.post('/api/submit', async (req, res) => {
+app.post('/api/submit', requireLogin, async (req, res) => {
   const {
     mode,
     searchAffiliation,
@@ -246,12 +274,30 @@ app.post('/api/submit', async (req, res) => {
   });
 });
 
+app.get('/login.html', (req, res) => {
+  const user = getSessionUser(req);
+
+  if (user) {
+    return res.redirect(user.role === 'admin' ? '/admin.html' : '/index.html');
+  }
+
+  res.sendFile(path.join(__dirname, 'login.html'));
+});
+
 app.get('/admin.html', requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
 app.get('/admin', requireAdmin, (req, res) => {
   res.redirect('/admin.html');
+});
+
+app.get('/index.html', requireLogin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/index', requireLogin, (req, res) => {
+  res.redirect('/index.html');
 });
 
 app.get('/api/submissions', requireAdmin, (req, res) => {

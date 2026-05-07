@@ -11,30 +11,8 @@
     <h1>인터넷신문 사고 팔기</h1>
     <p class="subtitle">매각 희망 / 인수 희망 정보를 접수하고 중개 담당자에게 제공합니다.</p>
     <div class="page-links">
-      <a class="secondary-button" href="login.html">관리자 로그인</a>
+      <button id="logoutButton" class="secondary-button" type="button">로그아웃</button>
     </div>
-
-    <section class="signup-section" aria-labelledby="signupTitle">
-      <h2 id="signupTitle">간단 회원가입</h2>
-      <form id="signupForm" class="signup-form">
-        <div class="form-group">
-          <label>이름</label>
-          <input type="text" name="name" placeholder="홍길동" required />
-        </div>
-        <div class="form-group">
-          <label>이메일</label>
-          <input type="email" name="email" placeholder="example@domain.com" required />
-        </div>
-        <div class="form-group">
-          <label>비밀번호</label>
-          <input type="password" name="password" placeholder="6자 이상" minlength="6" required />
-        </div>
-        <div class="form-actions">
-          <button type="submit">회원가입</button>
-        </div>
-        <p id="signupStatus" class="form-status" aria-live="polite"></p>
-      </form>
-    </section>
 
     <div class="toggle-buttons" role="tablist">
       <button id="sellTab" class="tab-button active" type="button" data-mode="sell" aria-selected="true">매각 희망</button>
