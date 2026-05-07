@@ -7,6 +7,7 @@ const { sendAdminNotification, sendUserConfirmation, ADMIN_EMAIL } = require('./
 const app = express();
 const PORT = process.env.PORT || 3000;
 const sessions = new Map();
+const SESSION_COOKIE_NAME = 'session_id';
 
 app.use(express.json());
 
@@ -58,7 +59,7 @@ function sanitizeUser(user) {
 
 function getSessionUser(req) {
   const cookies = parseCookies(req.headers.cookie);
-  const sessionId = cookies.session_id || cookies.admin_session;
+  const sessionId = cookies[SESSION_COOKIE_NAME] || cookies.admin_session;
   if (!sessionId) return null;
 
   const session = sessions.get(sessionId);
@@ -170,7 +171,8 @@ app.post('/api/login', (req, res) => {
       expiresAt: Date.now() + 1000 * 60 * 60 * 8,
     });
 
-    res.setHeader('Set-Cookie', `session_id=${sessionId}; HttpOnly; Path=/; Max-Age=28800; SameSite=Lax`);
+    const secureCookie = req.secure || req.headers['x-forwarded-proto'] === 'https' ? '; Secure' : '';
+    res.setHeader('Set-Cookie', `${SESSION_COOKIE_NAME}=${sessionId}; HttpOnly; Path=/; Max-Age=28800; SameSite=Lax${secureCookie}`);
     res.json({
       message: '로그인이 완료되었습니다.',
       redirectTo: sessionUser.role === 'admin' ? '/admin.html' : '/index.html',
@@ -181,8 +183,8 @@ app.post('/api/login', (req, res) => {
 
 app.post('/api/logout', (req, res) => {
   const cookies = parseCookies(req.headers.cookie);
-  if (cookies.session_id) {
-    sessions.delete(cookies.session_id);
+  if (cookies[SESSION_COOKIE_NAME]) {
+    sessions.delete(cookies[SESSION_COOKIE_NAME]);
   }
 
   if (cookies.admin_session) {
@@ -190,7 +192,7 @@ app.post('/api/logout', (req, res) => {
   }
 
   res.setHeader('Set-Cookie', [
-    'session_id=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax',
+    `${SESSION_COOKIE_NAME}=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax`,
     'admin_session=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax',
   ]);
   res.json({ message: '로그아웃되었습니다.' });
@@ -327,6 +329,43 @@ app.use(express.static(path.join(__dirname)));
 app.use((req, res) => {
   res.status(404).send('페이지를 찾을 수 없습니다.');
 });
+
+function ensureAdminAccount() {
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  const adminName = process.env.ADMIN_NAME || '관리자';
+
+  if (!adminPassword) {
+    console.warn('ADMIN_PASSWORD가 설정되지 않아 관리자 자동 생성을 건너뜁니다.');
+    return;
+  }
+
+  loadUsers((loadErr, users) => {
+    if (loadErr) {
+      console.error('관리자 계정 확인 실패:', loadErr);
+      return;
+    }
+
+    const savedAdmin = users.find((user) => user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
+    if (savedAdmin) return;
+
+    saveUser({
+      created_at: new Date().toISOString(),
+      name: adminName,
+      email: ADMIN_EMAIL,
+      role: 'admin',
+      passwordHash: createPasswordHash(adminPassword),
+    }, (saveErr) => {
+      if (saveErr) {
+        console.error('관리자 계정 자동 생성 실패:', saveErr);
+        return;
+      }
+
+      console.log(`관리자 계정이 생성되었습니다: ${ADMIN_EMAIL}`);
+    });
+  });
+}
+
+ensureAdminAccount();
 
 app.listen(PORT, () => {
   console.log(`Server started on http://localhost:${PORT}`);

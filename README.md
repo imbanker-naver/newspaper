@@ -12,6 +12,10 @@
 
 ## 환경 변수
 
+- `ADMIN_EMAIL`: 관리자 이메일 주소 (기본값: `imbanker@naver.com`)
+- `ADMIN_NAME`: 관리자 이름 (기본값: `관리자`)
+- `ADMIN_PASSWORD`: 공개 서버에서 관리자 계정을 자동 생성할 때 사용할 비밀번호
+- `DATABASE_PATH`: 데이터 저장 파일 경로 (지정하지 않으면 프로젝트 루트의 `database.json`)
 - `SMTP_HOST`: SMTP 서버 호스트
 - `SMTP_PORT`: SMTP 포트 (기본값: 587)
 - `SMTP_SECURE`: `true` 또는 `false`
@@ -30,3 +34,15 @@
 - 첫 접속 화면은 로그인 페이지입니다 (`http://localhost:3000/login.html`).
 - 모든 사용자는 로그인 후 서비스를 이용할 수 있습니다.
 - 관리자 계정으로 로그인하면 대시보드에서 회원 목록과 접수 목록을 확인할 수 있습니다.
+
+## 공개 배포
+
+이 앱은 Express API가 필요하므로 Firebase Hosting 단독 정적 호스팅으로는 배포할 수 없습니다.
+
+Firebase를 사용할 경우 권장 구성은 Firebase Hosting + Cloud Run입니다.
+
+- Firebase Hosting: 공개 URL, SSL, CDN
+- Cloud Run: Express 앱 실행
+- Firestore: 운영 데이터 저장 권장
+
+Firebase Hosting에서 Cloud Run의 `newspaper` 서비스로 모든 요청을 rewrite하는 `firebase.json`을 포함했습니다. 자세한 절차는 `FIREBASE_DEPLOYMENT.md`를 참고하세요.

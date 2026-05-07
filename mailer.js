@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
 
-const ADMIN_EMAIL = 'imbanker@naver.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'imbanker@naver.com';
 
 function createTransport() {
   if (process.env.SMTP_HOST) {

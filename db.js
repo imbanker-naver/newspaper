@@ -1,10 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 
-const dbPath = path.join(__dirname, 'database.json');
+const dbPath = process.env.DATABASE_PATH || path.join(__dirname, 'database.json');
 
 function ensureDatabaseFile() {
   if (!fs.existsSync(dbPath)) {
+    fs.mkdirSync(path.dirname(dbPath), { recursive: true });
     fs.writeFileSync(dbPath, JSON.stringify({ submissions: [], users: [] }, null, 2), 'utf8');
   }
 }
