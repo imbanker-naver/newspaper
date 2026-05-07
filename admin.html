@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>관리자 대시보드</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <div class="page-header-nav">
+      <div>
+        <h1>관리자 대시보드</h1>
+        <p class="subtitle">접수된 매각/인수 희망 정보를 확인하고 관리합니다.</p>
+      </div>
+      <a class="secondary-button" href="index.html">접수 페이지로 이동</a>
+    </div>
+
+    <div class="dashboard-controls">
+      <label>
+        제출 목록 필터:
+        <select id="modeFilter">
+          <option value="all">전체</option>
+          <option value="sell">매각 희망</option>
+          <option value="buy">인수 희망</option>
+        </select>
+      </label>
+      <button id="refreshButton" type="button">새로고침</button>
+    </div>
+
+    <section class="dashboard-summary">
+      <p>총 제출 건수: <strong id="submissionCount">0</strong></p>
+      <p>가입 회원 수: <strong id="userCount">0</strong></p>
+      <p>최근 제출: <strong id="lastSubmission">-</strong></p>
+    </section>
+
+    <section class="dashboard-list">
+      <h2>가입 회원</h2>
+      <ul id="userRows" class="user-list">
+        <li>회원 정보가 없습니다.</li>
+      </ul>
+    </section>
+
+    <section class="dashboard-list">
+      <h2>접수 목록</h2>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>접수일</th>
+            <th>구분</th>
+            <th>이메일</th>
+            <th>매출</th>
+            <th>요청가</th>
+            <th>네이버 제휴</th>
+            <th>상세</th>
+          </tr>
+        </thead>
+        <tbody id="submissionRows">
+          <tr><td colspan="8" class="empty-row">정보가 없습니다.</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>

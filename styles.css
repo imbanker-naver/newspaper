@@ -1,0 +1,307 @@
+:root {
+  color-scheme: light;
+  font-family: "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  background: #f7fafc;
+  color: #1f2937;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 32px 20px 48px;
+}
+
+h1 {
+  margin: 0 0 12px;
+  font-size: clamp(2rem, 3vw, 2.6rem);
+}
+
+.subtitle {
+  margin: 0 0 24px;
+  color: #475569;
+}
+
+.toggle-buttons {
+  display: inline-flex;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.tab-button {
+  background: white;
+  border: none;
+  padding: 12px 24px;
+  cursor: pointer;
+  color: #475569;
+  font-weight: 600;
+}
+
+.tab-button.active,
+.tab-button:hover {
+  background: #2563eb;
+  color: white;
+}
+
+.deal-form {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.05);
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.radio-row,
+.checkbox-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.radio-row label,
+.checkbox-grid label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+select,
+textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 1rem;
+}
+
+textarea {
+  resize: vertical;
+}
+
+.signup-section {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 28px;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.05);
+}
+
+.signup-section h2 {
+  margin: 0 0 18px;
+  font-size: 1.35rem;
+}
+
+.signup-form {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  align-items: end;
+}
+
+.signup-form .form-group,
+.signup-form .form-actions {
+  margin-bottom: 0;
+}
+
+.form-status {
+  grid-column: 1 / -1;
+  margin: 0;
+  min-height: 1.4em;
+  font-weight: 700;
+}
+
+.form-status.success {
+  color: #15803d;
+}
+
+.form-status.error {
+  color: #b91c1c;
+}
+
+.form-actions {
+  text-align: right;
+}
+
+button[type="submit"],
+#copyButton,
+.mailto-link {
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 24px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+button[type="submit"]:hover,
+#copyButton:hover,
+.mailto-link:hover {
+  background: #1d4ed8;
+}
+
+.result-section {
+  margin-top: 32px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.result-status {
+  margin: 0 0 12px;
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.result-text {
+  white-space: pre-wrap;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 18px;
+  margin: 16px 0 0;
+}
+
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.page-links {
+  margin-bottom: 18px;
+}
+
+.secondary-button {
+  display: inline-block;
+  background: #64748b;
+  color: white;
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-weight: 700;
+}
+
+.secondary-button:hover {
+  background: #475569;
+}
+
+.page-header-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.dashboard-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.dashboard-controls label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.dashboard-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+  color: #334155;
+}
+
+.user-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.user-list li {
+  margin-bottom: 8px;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 14px 12px;
+  border: 1px solid #e2e8f0;
+  text-align: left;
+  vertical-align: top;
+}
+
+.admin-table th {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.admin-table details {
+  font-size: 0.95rem;
+}
+
+.details-content {
+  margin-top: 8px;
+  padding: 10px;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.empty-row {
+  text-align: center;
+  padding: 24px 0;
+  color: #64748b;
+}
+
+.hidden {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .signup-form {
+    grid-template-columns: 1fr;
+  }
+
+  .radio-row,
+  .checkbox-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

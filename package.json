@@ -1,0 +1,13 @@
+{
+  "name": "newspaper",
+  "version": "1.0.0",
+  "description": "인터넷신문 매각/인수 접수 웹 앱 및 백엔드",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.17.4",
+    "nodemailer": "^6.4.18"
+  }
+}
