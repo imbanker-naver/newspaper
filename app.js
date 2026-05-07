@@ -43,6 +43,24 @@ function createMailtoHref(values, summary) {
   return `mailto:?subject=${subject}&body=${body}`;
 }
 
+async function readApiResponse(response) {
+  const text = await response.text();
+
+  if (!text) {
+    return {
+      error: "서버 응답이 비어 있습니다. 서버가 실행 중인지 확인해 주세요.",
+    };
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    return {
+      error: "서버에서 올바른 JSON 응답을 받지 못했습니다. npm start로 백엔드 서버를 실행한 뒤 다시 시도해 주세요.",
+    };
+  }
+}
+
 sellTab.addEventListener("click", () => setMode("sell"));
 buyTab.addEventListener("click", () => setMode("buy"));
 
@@ -68,7 +86,7 @@ signupForm.addEventListener("submit", async (event) => {
       body: JSON.stringify({ name, email, password }),
     });
 
-    const data = await response.json();
+    const data = await readApiResponse(response);
 
     if (!response.ok) {
       throw new Error(data.error || '회원가입 중 오류가 발생했습니다.');
@@ -123,7 +141,7 @@ dealForm.addEventListener("submit", async (event) => {
       body: JSON.stringify(values),
     });
 
-    const data = await response.json();
+    const data = await readApiResponse(response);
 
     if (!response.ok) {
       throw new Error(data.error || '서버에 요청하는 중 오류가 발생했습니다.');
