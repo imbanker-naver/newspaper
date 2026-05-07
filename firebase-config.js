@@ -1,12 +1,13 @@
 const ADMIN_EMAIL = 'imbanker@naver.com';
 
 const firebaseConfig = {
-  apiKey: 'YOUR_API_KEY',
-  authDomain: 'YOUR_PROJECT_ID.firebaseapp.com',
-  projectId: 'YOUR_PROJECT_ID',
-  storageBucket: 'YOUR_PROJECT_ID.firebasestorage.app',
-  messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-  appId: 'YOUR_APP_ID',
+  apiKey: 'AIzaSyCUA5Rzwisqn8yl6wXNC70rd_8OkByB9ok',
+  authDomain: 'newspaper-4989.firebaseapp.com',
+  projectId: 'newspaper-4989',
+  storageBucket: 'newspaper-4989.firebasestorage.app',
+  messagingSenderId: '771356310711',
+  appId: '1:771356310711:web:08fed3f2c1edc489522132',
+  measurementId: 'G-ZBBFSK697Q',
 };
 
 firebase.initializeApp(firebaseConfig);
