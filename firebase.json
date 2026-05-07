@@ -4,7 +4,10 @@
     "ignore": [
       "firebase.json",
       "**/.*",
+      ".git/**",
+      ".venv/**",
       "**/node_modules/**",
+      "node_modules/**",
       "server.js",
       "db.js",
       "mailer.js",
@@ -12,6 +15,7 @@
       "package*.json",
       "Dockerfile",
       "FIREBASE_DEPLOYMENT.md",
+      "firebase-debug.log",
       "*.docx"
     ]
   },

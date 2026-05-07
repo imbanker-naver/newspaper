@@ -3,3 +3,4 @@ database.json
 .env
 .venv/
 firebase-debug.log
+.firebase/
