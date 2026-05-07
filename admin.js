@@ -1,5 +1,6 @@
 const modeFilter = document.getElementById('modeFilter');
 const refreshButton = document.getElementById('refreshButton');
+const logoutButton = document.getElementById('logoutButton');
 const submissionCount = document.getElementById('submissionCount');
 const userCount = document.getElementById('userCount');
 const lastSubmission = document.getElementById('lastSubmission');
@@ -9,6 +10,11 @@ const userRows = document.getElementById('userRows');
 async function fetchSubmissions() {
   try {
     const res = await fetch('/api/submissions');
+    if (res.status === 401) {
+      window.location.href = '/login.html';
+      return [];
+    }
+
     if (!res.ok) {
       throw new Error('제출 목록을 불러오는 중 오류가 발생했습니다.');
     }
@@ -23,6 +29,11 @@ async function fetchSubmissions() {
 async function fetchUsers() {
   try {
     const res = await fetch('/api/users');
+    if (res.status === 401) {
+      window.location.href = '/login.html';
+      return [];
+    }
+
     if (!res.ok) {
       throw new Error('회원 목록을 불러오는 중 오류가 발생했습니다.');
     }
@@ -114,6 +125,11 @@ async function loadDashboard() {
   renderUsers(users);
   renderTable(submissions.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
 }
+
+logoutButton.addEventListener('click', async () => {
+  await fetch('/api/logout', { method: 'POST' });
+  window.location.href = '/login.html';
+});
 
 refreshButton.addEventListener('click', () => loadDashboard());
 modeFilter.addEventListener('change', () => loadDashboard());

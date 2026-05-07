@@ -6,14 +6,34 @@ const { sendAdminNotification, sendUserConfirmation, ADMIN_EMAIL } = require('./
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const sessions = new Map();
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
 
 function createPasswordHash(password) {
   const salt = crypto.randomBytes(16).toString('hex');
   const hash = crypto.pbkdf2Sync(password, salt, 120000, 64, 'sha512').toString('hex');
   return `${salt}:${hash}`;
+}
+
+function verifyPassword(password, passwordHash = '') {
+  const [salt, savedHash] = passwordHash.split(':');
+  if (!salt || !savedHash) return false;
+
+  const hash = crypto.pbkdf2Sync(password, salt, 120000, 64, 'sha512').toString('hex');
+  const savedBuffer = Buffer.from(savedHash, 'hex');
+  const hashBuffer = Buffer.from(hash, 'hex');
+
+  return savedBuffer.length === hashBuffer.length && crypto.timingSafeEqual(savedBuffer, hashBuffer);
+}
+
+function parseCookies(cookieHeader = '') {
+  return cookieHeader.split(';').reduce((cookies, cookie) => {
+    const [rawName, ...rawValue] = cookie.trim().split('=');
+    if (!rawName) return cookies;
+    cookies[rawName] = decodeURIComponent(rawValue.join('='));
+    return cookies;
+  }, {});
 }
 
 function sanitizeUser(user) {
@@ -24,6 +44,35 @@ function sanitizeUser(user) {
     email: user.email,
     role: user.role || 'user',
   };
+}
+
+function getSessionUser(req) {
+  const cookies = parseCookies(req.headers.cookie);
+  const sessionId = cookies.admin_session;
+  if (!sessionId) return null;
+
+  const session = sessions.get(sessionId);
+  if (!session || session.expiresAt < Date.now()) {
+    sessions.delete(sessionId);
+    return null;
+  }
+
+  return session.user;
+}
+
+function requireAdmin(req, res, next) {
+  const user = getSessionUser(req);
+
+  if (!user || user.role !== 'admin') {
+    if (req.path.endsWith('.html')) {
+      return res.redirect('/login.html');
+    }
+
+    return res.status(401).json({ error: '관리자 로그인이 필요합니다.' });
+  }
+
+  req.user = user;
+  next();
 }
 
 app.post('/api/register', (req, res) => {
@@ -67,6 +116,57 @@ app.post('/api/register', (req, res) => {
       user: sanitizeUser(Object.assign({ id: userId }, user)),
     });
   });
+});
+
+app.post('/api/login', (req, res) => {
+  const { email = '', password = '' } = req.body;
+  const trimmedEmail = email.trim();
+
+  if (!trimmedEmail || !password) {
+    return res.status(400).json({ error: '이메일과 비밀번호를 입력해 주세요.' });
+  }
+
+  loadUsers((err, users) => {
+    if (err) {
+      console.error('Login users load error:', err);
+      return res.status(500).json({ error: '로그인 정보를 확인하지 못했습니다.' });
+    }
+
+    const user = users.find((savedUser) => savedUser.email.toLowerCase() === trimmedEmail.toLowerCase());
+
+    if (!user || !verifyPassword(password, user.passwordHash)) {
+      return res.status(401).json({ error: '이메일 또는 비밀번호가 올바르지 않습니다.' });
+    }
+
+    if ((user.role || 'user') !== 'admin') {
+      return res.status(403).json({ error: '관리자 계정만 접속할 수 있습니다.' });
+    }
+
+    const sessionId = crypto.randomBytes(32).toString('hex');
+    const sessionUser = sanitizeUser(user);
+    sessions.set(sessionId, {
+      user: sessionUser,
+      expiresAt: Date.now() + 1000 * 60 * 60 * 8,
+    });
+
+    res.setHeader('Set-Cookie', `admin_session=${sessionId}; HttpOnly; Path=/; Max-Age=28800; SameSite=Lax`);
+    res.json({ message: '관리자 로그인이 완료되었습니다.', user: sessionUser });
+  });
+});
+
+app.post('/api/logout', (req, res) => {
+  const cookies = parseCookies(req.headers.cookie);
+  if (cookies.admin_session) {
+    sessions.delete(cookies.admin_session);
+  }
+
+  res.setHeader('Set-Cookie', 'admin_session=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax');
+  res.json({ message: '로그아웃되었습니다.' });
+});
+
+app.get('/api/me', (req, res) => {
+  const user = getSessionUser(req);
+  res.json({ user });
 });
 
 app.post('/api/submit', async (req, res) => {
@@ -142,7 +242,15 @@ app.post('/api/submit', async (req, res) => {
   });
 });
 
-app.get('/api/submissions', (req, res) => {
+app.get('/admin.html', requireAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+app.get('/admin', requireAdmin, (req, res) => {
+  res.redirect('/admin.html');
+});
+
+app.get('/api/submissions', requireAdmin, (req, res) => {
   loadSubmissions((err, submissions) => {
     if (err) {
       console.error('Submissions load error:', err);
@@ -153,7 +261,7 @@ app.get('/api/submissions', (req, res) => {
   });
 });
 
-app.get('/api/users', (req, res) => {
+app.get('/api/users', requireAdmin, (req, res) => {
   loadUsers((err, users) => {
     if (err) {
       console.error('Users load error:', err);
@@ -163,6 +271,8 @@ app.get('/api/users', (req, res) => {
     res.json({ users: users.map(sanitizeUser) });
   });
 });
+
+app.use(express.static(path.join(__dirname)));
 
 app.use((req, res) => {
   res.status(404).send('페이지를 찾을 수 없습니다.');
