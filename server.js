@@ -10,6 +10,10 @@ const sessions = new Map();
 
 app.use(express.json());
 
+app.get('/', (req, res) => {
+  res.redirect('/login.html');
+});
+
 function createPasswordHash(password) {
   const salt = crypto.randomBytes(16).toString('hex');
   const hash = crypto.pbkdf2Sync(password, salt, 120000, 64, 'sha512').toString('hex');
