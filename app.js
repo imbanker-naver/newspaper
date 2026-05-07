@@ -9,7 +9,6 @@ const resultSection = document.getElementById("resultSection");
 const resultStatus = document.getElementById("resultStatus");
 const resultText = document.getElementById("resultText");
 const copyButton = document.getElementById("copyButton");
-const mailtoLink = document.getElementById("mailtoLink");
 
 let currentMode = "sell";
 
@@ -36,12 +35,6 @@ function buildSummary(values) {
     `${values.mode === "sell" ? "매각 희망가" : "인수 희망가"}: ${values.price}억원`,
     `하고 싶은 말: ${values.notes || "없음"}`,
     `이메일: ${values.email}`].join("\n");
-}
-
-function createMailtoHref(values, summary) {
-  const subject = encodeURIComponent(`${values.mode === "sell" ? "매각" : "인수"} 희망 정보 접수`);
-  const body = encodeURIComponent(`${summary}\n\n※ 중개 담당자에게 제공할 정보입니다.`);
-  return `mailto:?subject=${subject}&body=${body}`;
 }
 
 async function readApiResponse(response) {
@@ -162,7 +155,6 @@ dealForm.addEventListener("submit", async (event) => {
 
     resultText.textContent = data.summary;
     resultStatus.textContent = data.message;
-    mailtoLink.href = createMailtoHref(values, data.summary);
     resultSection.classList.remove("hidden");
     resultSection.scrollIntoView({ behavior: "smooth" });
   } catch (error) {
